@@ -13,18 +13,18 @@ public class TestCase extends BaseCoreFunctionalTestCase {
 
     @Override
     protected Class[] getAnnotatedClasses() {
-        return new Class[] {
-				Entit.class,
-				Property.class
+        return new Class[]{
+                Entit.class,
+                Property.class
         };
     }
 
     @Override
     protected void configure(Configuration configuration) {
-        super.configure( configuration );
+        super.configure(configuration);
 
-        configuration.setProperty( AvailableSettings.SHOW_SQL, Boolean.TRUE.toString() );
-        configuration.setProperty( AvailableSettings.GENERATE_STATISTICS, "true" );
+        configuration.setProperty(AvailableSettings.SHOW_SQL, Boolean.TRUE.toString());
+        configuration.setProperty(AvailableSettings.GENERATE_STATISTICS, "true");
     }
 
 
@@ -40,7 +40,11 @@ public class TestCase extends BaseCoreFunctionalTestCase {
         tx.commit();
         s.close();
 
-        assertThat(sessionFactory().getStatistics().getEntityInsertCount(), is(3L)); // OK, 1 insert for child + 2 insert for the parents
+        assertThat(sessionFactory()
+                        .getStatistics()
+                        .getEntityInsertCount(),
+                is(3L));
+        // OK, one Property and two Entits inserted
 
         sessionFactory().getStatistics().clear();
 
@@ -51,5 +55,26 @@ public class TestCase extends BaseCoreFunctionalTestCase {
         s.byId(Entit.class).load(2);
         tx.commit();
         s.close();
+
+        assertThat(sessionFactory()
+                        .getStatistics()
+                        .getEntityLoadCount(),
+                is(3L));
+        //OK, two Entits and one Property loaded
+
+        assertThat(sessionFactory()
+                        .getStatistics()
+                        .getPrepareStatementCount(),
+                is(3L));
+        /*
+        NOT OK, four queries are fired to load the entities:
+           one for Entit 1;
+           one for Property 1;
+           one for Entit 2;
+           and then (what i believe is wrong) another one for Property 1.
+        Shouldn't Property 1 be on the persistenceContext's entitiesByUniqueKey after the first select, so that it would
+        be loaded from the context when Entit 2 is loaded, instead of shooting another (equal) query ?
+        */
+
     }
 }
