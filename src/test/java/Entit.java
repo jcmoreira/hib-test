@@ -7,7 +7,7 @@ public class Entit implements Serializable{
     @Id
     private Integer id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({
             @JoinColumn(name="PROP_CODE", referencedColumnName = "CODE"),
             @JoinColumn(name="PROP_ITEM", referencedColumnName = "ITEM")
